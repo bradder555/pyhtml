@@ -13,120 +13,215 @@ t = lambda x: lambda: x
 # nicer way to run the function
 render = lambda f: f()
 
-def attr(d):
-    """
-    maps a dict into an attribute string
-    :param d: dictionary of hash
-    :return: string in the attribute format()
-    """
-    t = map(lambda x: '{}="{}"'.format(*x),d.items())
-    return lambda : reduce(lambda x,y: "{} {}".format(x, y), t)
+no_content = lambda: AttributeError("For this function, content should be None")
+no_at = lambda: AttributeError("For this function, at should be None")
+missing_type = lambda: AttributeError("The type can't be None; something bad has happened...")
 
+def element_only(type, content, at):
+    if content != null: raise no_content()
+    if at != null: raise no_at()
+    return lambda: "<{}>".format(type)
 
-def generic_element(type,content=null,attr=null):
+def only_at(type, content, at):
+    if content != null: raise no_content()
+    return lambda: "<{} {}/>".format(type, at())
+
+def content_only(type, content, at):
+    if at != null: raise no_at()
+    # i don't think such a case exists...
+    return lambda: "<{}>{}</{}>".format(type, content(), type)
+
+def content_and_at(type, content, at):
+    return lambda: "<{} {}>{}</{}>".format(type, at(), content(), type)
+
+def generic_element(behaviour, type, content=null,at=null):
+    if type == None: raise missing_type()
     """
     this is the template function, all other elements or curried from this element
     :param type:
     :param content:
-    :param attr:
+    :param at:
     :return:
     """
     if hasattr(content, '__iter__'):
-        t = reduce(lambda x, y: lambda: "{}{}".format(x(), y()), content)
+        content = list(content)
+        if len(content) == 0:
+            t = null
+        else:
+            t = reduce(lambda x, y: lambda: "{}{}".format(x(), y()), content)
     else:
         t = content
 
-    return lambda: "<{} {}>{}</{}>".format(type, attr(), t(), type)
+    return behaviour(type, t, at)
 
 # save some keystrokes
-_c = curry(curry, generic_element)
+naoc = curry(curry,generic_element, element_only)
+ao = curry(curry,generic_element, only_at)
+co = curry(curry,generic_element, content_only)
+ac = curry(curry,generic_element, content_and_at)
 
 # todo: put in alphabetical order to prevent duplication
-a = _c("a")
+a = ac("a")
+abbr = ac("abbr")
+acronym = ac("acronym")
+address = ac("address")
+applet = ac("applet")
+area = ac("area")
+article = ac("article")
+aside = ac("aside")
+audio = ac("audio")
 
-p = _c("p")
-h1 = _c("h1")
-h2 = _c("h2")
-h3 = _c("h3")
-h4 = _c("h4")
+b = ac("b")
+base = ac("base")
+basefont = ac("basefont")
+bdi = ac("bdi")
+bdo = ac("bdo")
+big = ac("big")
+blockquote = ac("blockquote")
+body = ac("body")
+br = naoc("br")
+button = ac("button")
 
-html = _c("html")
-head = _c("head")
-img = _c("img")
-body = _c("body")
-div = _c("div")
-span = _c("span")
-table = _c("table")
-form = _c("form")
-article = _c("article")
-aside = _c("aside")
-details = _c("details")
-figcaption = _c("figcaption")
-figure = _c("figure")
-footer = _c("footer")
-header = _c("header")
-main = _c("main")
-nav = _c("nav")
-section = _c("section")
-summary = _c("summary")
-time = _c("time")
-ol = _c("ol")
-ul = _c("ul")
-li = _c("li")
-dl = _c("dl")
-dt = _c("dt")
-dd = _c("dd")
-style = _c("style")
-br = _c("br")
-hr = _c("hr")
-b = _c("b")
-strong = _c("strong")
-i = _c("i")
-em = _c("em")
-mark = _c("mark")
-small = _c("small")
-dell = _c("del")
-ins = _c("ins")
-sub = _c("sub")
-sup = _c("sup")
-q = _c("q")
-blockquote = _c("blockquote")
-address = _c("address")
-cite = _c("cite")
-bdo = _c("bdo")
-tr = _c("tr")
-th = _c("th")
-td = _c("td")
-caption = _c("caption")
-tfoot = _c("tfoot")
-video = _c("video")
-pre = _c("pre")
-canvas = _c("canvas")
-main = _c("main")
-acronym = _c("acronym")
-big = _c("big")
-button = _c("button")
-em = _c("em")
-input = _c("input")
-label = _c("label")
-script = _c("script")
-select = _c("select")
-small = _c("small")
-span = _c("span")
-textarea = _c("textarea")
-tt = _c("tt")
-var = _c("var")
-meta = _c("meta")
-source = _c("source")
-picture = _c("picture")
-ul = _c("ul")
+canvas = ac("canvas")
+caption = ac("caption")
+center = ac("cetner")
+cite = ac("cite")
+code = ac("code")
+col = ac("col")
+colgroup = ac("colgroup")
+
+data = ac("data")
+datalist = ac("datalist")
+dd = ac("dd")
+dell = ac("del")
+details = ac("details")
+dfn = ac("dfn")
+dialog = ac("dialog")
+dir = ac("dir")
+div = ac("div")
+dl = ac("dl")
+dt = ac("dt")
+
+em = ac("em")
+embed = ao("embed")
+
+fieldset = ac("fieldset")
+figcaption = ac("figcaption")
+figure = ac("figure")
+footer = ac("footer")
+form = ac("form")
+font = ac("font")
+frame = ao("frame")
+frameset = ac("frameset")
+
+h1 = ac("h1")
+h2 = ac("h2")
+h3 = ac("h3")
+h4 = ac("h4")
+h5 = ac("h5")
+h6 = ac("h6")
+head = ac("head")
+header = ac("header")
+hr = naoc("hr")
+html = ac("html")
+
+i = ac("i")
+iframe = ac("iframe")
+img = ao("img")
+input = ao("input")
+ins = ac("ins")
+
+kbd = ac("kbd")
+
+label = ac("label")
+legend = ac("legend")
+li = ac("li")
+link = ao("link")
+
+main = ac("main")
+mapp = ac("map")
+mark = ac("mark")
+menu = ac("menu")
+menuitem = ao("menuitem")
+meta = ao("meta")
+meter = ac("meter")
+
+nav = ac("nav")
+noframes = ac("noframes")
+noscript = ac("noscript")
+
+object = ao("object")
+ol = ac("ol")
+optgroup = ac("optgroup")
+option = ac("option")
+output = ao("output")
+
+p = ac("p")
+param = ao("param")
+picture = ac("picture")
+pre = ac("pre")
+progress = ac("progress")
+
+q = ac("q")
+
+s = ac("s")
+samp = ac("samp")
+script = ac("script")
+section = ac("section")
+select = ac("select")
+small = ac("small")
+source = ao("source")
+span = ac("span")
+# strike not supported in html5
+strong = ac("strong")
+style = ac("style")
+sub = ac("sub")
+summary = ac("summary")
+sup = ac("sup")
+
+table = ac("table")
+tbody = ac("tbody")
+td = ac("td")
+template = ac("template")
+textarea = ac("textarea")
+tfoot = ac("tfoot")
+th = ac("th")
+thead = ac("thead")
+time = ac("time")
+title = ac("title")
+tr = ac("tr")
+track = ao("track")
+tt = ac("tt")
+
+u = ac("u")
+ul = ac("ul")
+
+var = ac("var")
+video = ac("video")
+
+def at(d):
+    """
+    maps a dict into an at string
+    :param d: dictionary of hash
+    :return: string in the at format()
+    """
+    t = map(lambda x: '{}="{}"'.format(*x),d.items())
+    return lambda : reduce(lambda x,y: "{} {}".format(x, y), t)
 
 if __name__ == "__main__":
     """
     For Now the testing consists of writing html to an output file
     todo: build a nice looking test page
     """
-
+    import sys
+    print(body()())
+    print(body(t("hello"))())
+    print(body(p(t("hello")))())
+    print(body([])())
+    print(body([p(t("hello"))])())
+    print(body([p(t("hello")), p(t("hello"))])())
+    print(body([p(t("hello")), br(), p(t("hello"))])())
+    print((lambda :"hello world")())
     fruit = ["apples", "oranges", "bananas", "lemons"]
 
     sub_block_demo = table(
@@ -152,28 +247,52 @@ if __name__ == "__main__":
         ]
     )
 
-    import sys
-    OUT_FILE = sys.argv[1]
-    with open(OUT_FILE, 'w') as f:
-        f.write(
-            render(
-                html(
-                    body(
-                        [
-                         h1(t("Fun trucks")),
-                         p(t("This is a website about trucks"), attr=attr({"style": 'color:blue;'})),
-                         ul(
-                            [
-                                li(t("first in list")),
-                                li(t("second in list"))
-                            ], attr=attr({"id": "list"})
-                         ),
-                         ul(
-                            map(lambda x: li(t(x)), fruit), attr=attr({"id": "list"})
-                         ),
-                         sub_block_demo
-                        ]
-                    )
-                )
+    doc = render(
+        html(
+            [
+            head(
+                title(t("Awesome Page!"))
+            ),
+            body(
+                [
+                 h1(t("Fun trucks")),
+                 p(t("This is a website about trucks")),
+                 br(),
+                 p(t("paragraph after a break"), at({"id": "paragraph_2"})),
+                 ul(
+                    [
+                        li(t("first in list")),
+                        li(t("second in list"))
+                    ]
+                 ),
+                 ul(
+                    map(lambda x: li(t(x)), fruit)
+                 ),
+                 sub_block_demo
+                ]
             )
-        )
+        ])
+    )
+
+    import tempfile
+    import os
+
+    tf_h, tf_p = tempfile.mkstemp(".html")
+    tf_p = tf_p.replace('\\', '/' )
+
+    with os.fdopen(tf_h, mode='wb') as fp:
+        fp.write(doc.encode('utf-8'))
+
+    from selenium import webdriver as wd
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
+    chrome = wd.Chrome() # chromedriver needs to be on the PATH
+    chrome.get("file:///"+tf_p)
+    WebDriverWait(chrome,3).until(EC.title_is, 'Awesome Page!')
+    os.remove(tf_p)
+
+    import time
+    time.sleep(5)
+
+    chrome.quit()
