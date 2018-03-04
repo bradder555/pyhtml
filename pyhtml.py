@@ -2,10 +2,11 @@ from functools import reduce, partial as curry
 from functional import foldl, compose as compose2
 
 # n-composition, reduce expects a list, so the arguments are list-ified
-compose = curry(lambda f,*x: f(list(x)), curry(reduce, compose2))
+compose = curry(lambda f,*x: f(x), curry(reduce, compose2))
 
 # wraps an empty string up in a function
 null = lambda : ""
+nulliter = ([null])
 
 # wraps a string up in a function
 t = lambda x: lambda: x
@@ -17,24 +18,28 @@ no_content = lambda: AttributeError("For this function, content should be None")
 no_at = lambda: AttributeError("For this function, at should be None")
 missing_type = lambda: AttributeError("The type can't be None; something bad has happened...")
 
+
 def element_only(type, content, at):
     if content != null: raise no_content()
     if at != null: raise no_at()
-    return lambda: "<{}>".format(type)
+    return lambda: ''.join(("<", type, ">"))
+
 
 def only_at(type, content, at):
     if content != null: raise no_content()
-    return lambda: "<{} {}/>".format(type, at())
+    return lambda: ''.join(("<",type," ",at(), "/>"))
+
 
 def content_only(type, content, at):
     if at != null: raise no_at()
     # i don't think such a case exists...
-    return lambda: "<{}>{}</{}>".format(type, content(), type)
+    return lambda: ''.join(("<",type,">",content(),"</",type,">"))
+
 
 def content_and_at(type, content, at):
-    return lambda: "<{} {}>{}</{}>".format(type, at(), content(), type)
+    return lambda: ''.join(("<", type, " ", at(), ">", content(), "</", type, ">"))
 
-def generic_element(behaviour, type, content=null,at=null):
+def generic_element(behaviour, type, content=null, at=null):
     if type == None: raise missing_type()
     """
     this is the template function, all other elements or curried from this element
@@ -44,15 +49,14 @@ def generic_element(behaviour, type, content=null,at=null):
     :return:
     """
     if hasattr(content, '__iter__'):
-        content = list(content)
-        if len(content) == 0:
-            t = null
-        else:
-            t = reduce(lambda x, y: lambda: "{}{}".format(x(), y()), content)
+        t = lambda: "".join(map(lambda x: x(), content))
     else:
         t = content
 
-    return behaviour(type, t, at)
+    return behaviour(
+        type,
+        t,
+        at)
 
 # save some keystrokes
 naoc = curry(curry,generic_element, element_only)
@@ -205,43 +209,38 @@ def at(d):
     :param d: dictionary of hash
     :return: string in the at format()
     """
-    t = map(lambda x: '{}="{}"'.format(*x),d.items())
-    return lambda : reduce(lambda x,y: "{} {}".format(x, y), t)
+    f = lambda x: "".join((x[0], "=", x[1]))
+    return lambda: "".join(map(f, d.items()))
+
 
 if __name__ == "__main__":
-    """
-    For Now the testing consists of writing html to an output file
-    todo: build a nice looking test page
-    """
-    import sys
     print(body()())
     print(body(t("hello"))())
-    print(body(p(t("hello")))())
+    print(body([p([t("hello")])])())
     print(body([])())
-    print(body([p(t("hello"))])())
-    print(body([p(t("hello")), p(t("hello"))])())
-    print(body([p(t("hello")), br(), p(t("hello"))])())
-    print((lambda :"hello world")())
+    print(body([p([t("hello")])])())
+    print(body([p([t("hello")]), p([t("hello")])])())
+    print(body([p([t("hello")]), br(), p([t("hello")])])())
     fruit = ["apples", "oranges", "bananas", "lemons"]
 
     sub_block_demo = table(
         [
         tr(
             [
-                th(t("heading 1")),
-                th(t("heading 1"))
+                th([t("heading 1")]),
+                th([t("heading 1")])
             ]
         ),
         tr(
             [
-                td(t("row 1 col 1")),
-                td(t("row 1 col 2"))
+                td([t("row 1 col 1")]),
+                td([t("row 1 col 2")])
             ]
         ),
         tr(
             [
-                td(t("row 2 col 1")),
-                td(t("row 2 col 2"))
+                td([t("row 2 col 1")]),
+                td([t("row 2 col 2")])
             ]
         )
         ]
@@ -250,23 +249,23 @@ if __name__ == "__main__":
     doc = render(
         html(
             [
-            head(
-                title(t("Awesome Page!"))
-            ),
+            head([
+                title([t("Awesome Page!")])
+            ]),
             body(
                 [
-                 h1(t("Fun trucks")),
-                 p(t("This is a website about trucks")),
+                 h1([t("Fun trucks")]),
+                 p([t("This is a website about trucks")]),
                  br(),
-                 p(t("paragraph after a break"), at({"id": "paragraph_2"})),
+                 p([t("paragraph after a break")], at({"id": "paragraph_2"})),
                  ul(
                     [
-                        li(t("first in list")),
-                        li(t("second in list"))
+                        li([t("first in list")]),
+                        li([t("second in list")])
                     ]
                  ),
                  ul(
-                    map(lambda x: li(t(x)), fruit)
+                    map(lambda x: li([t(x)]), fruit)
                  ),
                  sub_block_demo
                 ]
@@ -293,6 +292,6 @@ if __name__ == "__main__":
     os.remove(tf_p)
 
     import time
-    time.sleep(5)
+    time.sleep(60)
 
     chrome.quit()
