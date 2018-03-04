@@ -1,6 +1,20 @@
 # pyhtml
 Simple functional python HTML templating DSL
 
+## performance
+Running benchmarks 100 times each...
+pyhtml template            45.13 ms
+Django template           269.48 ms
+Django template autoescaped           271.02 ms
+Jinja2 template            11.14 ms
+Jinja2 template autoescaped            31.68 ms
+Mako template             8.00 ms
+Mako template autoescaped            23.65 ms
+Python string template            50.64 ms
+Python list concatenation             5.94 ms
+
+*6x faster than django!!*
+
 The codebase is very rough at the moment, but I have a simple working proof of concept.
 
 The entire page is a function that consists of a series of nested functions or lists of functions.
@@ -20,8 +34,6 @@ For usage, see main.py...
 
 Should be trivial to incorporate into various python frameworks.
 
-I would like to run some benchmarking tests between this and other templating engines. 
-Since it relies entirely on python's parser and AST, i suspect the performance should be very good. -- some future work.
 
 ## colaborators welcome
 
