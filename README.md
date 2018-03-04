@@ -4,13 +4,21 @@ Simple functional python HTML templating DSL
 ## performance
 Running benchmarks 100 times each...
 pyhtml template            45.13 ms
+
 Django template           269.48 ms
+
 Django template autoescaped           271.02 ms
+
 Jinja2 template            11.14 ms
+
 Jinja2 template autoescaped            31.68 ms
+
 Mako template             8.00 ms
+
 Mako template autoescaped            23.65 ms
+
 Python string template            50.64 ms
+
 Python list concatenation             5.94 ms
 
 *6x faster than django!!*
